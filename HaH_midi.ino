@@ -2,8 +2,8 @@
 #include <Control_Surface.h>
 
 enum Mode {
-  MODE_A,
-  MODE_B
+  CH,
+  FX
 };
 
 // Input Pins with board constants
@@ -23,8 +23,8 @@ const int LED_M = 14;     // Digital Pin 14 (Assignment LED_SW)
 const int BUT_M = 15;     // Digital Pin 15 (Assignment BUT_SW)
 
 // Analog Pins
-const int BUT_DE = A0;     // Analog Pin 0 (Assignment BUT_DE)
-const int LED_DE = A1;     // Analog Pin 1 (Assignment LED_DE)
+const int BUT_D = A0;     // Analog Pin 0 (Assignment BUT_D)
+const int LED_D = A1;     // Analog Pin 1 (Assignment LED_D)
 const int POT_EX = A3;     // Analog Pin 3 (Assignment EX)
 
 // States
@@ -33,11 +33,13 @@ bool LEDStates[6];
 
 bool delayState;
 bool modeState;
-currMode;
+
+Mode currMode;
 
 
 // Other
-const int DEBOUNCETIME = 10;
+const int DEBOUNCETIME = 5;
+const int DELAY_TAP_LED_TIME = 5;
 const int RELEASEVEL = 127;
 const int NUM_BUTTONS = 6;
 
@@ -84,8 +86,8 @@ void setup() {
   pinMode(BUT_M, INPUT_PULLUP);
 
   // Digital Inputs for the Delay LED and button
-  pinMode(BUT_DE, INPUT_PULLUP);
-  pinMode(LED_DE, OUTPUT);
+  pinMode(BUT_D, INPUT_PULLUP);
+  pinMode(LED_D, OUTPUT);
 
   // Analog Input for EX assignment
   pinMode(POT_EX, INPUT);
@@ -98,38 +100,58 @@ void setup() {
   modeState = false;
   delayState = false;
 
+  currMode = FX;
+
 }
 
 void loop() {
 
   bool currentState;
 
-  // mode selector
+  /************************/
+  // MODE SELECTOR
+  /************************/
+
   currentState = digitalRead(BUT_M);
 
   if (currentState != modeState) {
+      delay(DEBOUNCETIME); // Debounce delay
 
-    delay(DEBOUNCETIME); // Debounce delay
+      if (currentState != modeState) {
 
-    if (currentState != modeState) {
+          if (currentState == LOW) {
 
-      if (currentState == LOW) {
-        modeState = false;
+              // Change mode
+              currMode = static_cast<Mode>((currMode + 1) % 2); // Cycle through modes
+              Serial.print("Current Mode: MODE_");
+              Serial.println(static_cast<int>(currMode)); // Print the current mode number
 
+          }
 
-
-      } else {
-        modeState = true;
-
-
-        
+          modeState = currentState; // Update the mode state
       }
+  }
 
-    }
+  switch (currMode)  {
+
+  case FX:
+    digitalWrite(LED_M,HIGH);
+    break;
+
+  case CH:
+    digitalWrite(LED_M,LOW);
+    break;
+  
+  default: // shouldn't happen but is here anyways
+
+    break;
 
   }
 
-  // Check each button state
+  /************************/
+  // CONTROL BUTTONS FX
+  /************************/
+
   for (int i = 0; i < NUM_BUTTONS; i++) {
     // Reading the button state from the appropriate pin
     currentState = digitalRead(buttonPins[i]);
@@ -142,9 +164,6 @@ void loop() {
 
         if (currentState == LOW) {
 
-          // change the button state
-          buttonStates[i] = false;  // Set the button state to pressed
-
           // toggle LED, allows for TFF behaviour
           LEDStates[i] = !LEDStates[i];
 
@@ -153,14 +172,14 @@ void loop() {
           Serial.print(i);
           Serial.println(" pressed.");
           
-        } else {
-
-          // Handle button release
-          buttonStates[i] = true; // Set the button state to not pressed
         }
+
+        buttonStates[i] = currentState; 
 
       }
     }
+
+    // CONTROL BUTTONS LEDs
 
     if (LEDStates[i]) {
       digitalWrite(ledPins[i], HIGH);  // Turn on the corresponding LED
@@ -169,9 +188,32 @@ void loop() {
     }
 
   }
-   
 
-  
+  /************************/
+  // DELAY TAPPER
+  /************************/
+
+  currentState = digitalRead(BUT_D);
+
+  if (currentState != delayState) {
+
+      delay(DEBOUNCETIME); // Debounce delay
+
+      if (currentState != delayState) {
+
+          if (currentState == LOW) {
+
+            Serial.print("Current Mode: Delay Tapped");
+            digitalWrite(LED_D, HIGH);  // Turn on the corresponding LED
+            delay(DELAY_TAP_LED_TIME);
+            digitalWrite(LED_D, LOW);  // Turn on the corresponding LED
+              
+          } 
+
+          delayState = currentState; // Update the mode state
+      }
+  }
+    
 }
 
 
