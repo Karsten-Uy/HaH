@@ -58,6 +58,10 @@
   "C_Cpp_Runner.msvcSecureNoWarnings": false,
   "C_Cpp.errorSquiggles": "disabled",
   "files.associations": {
-    "*.ipp": "cpp"
+    "*.ipp": "cpp",
+    "complex": "cpp",
+    "cstdlib": "cpp",
+    "cstddef": "cpp",
+    "xiosbase": "cpp"
   }
 }

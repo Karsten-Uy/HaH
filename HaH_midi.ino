@@ -15,6 +15,10 @@ bool LEDStates[6];
 bool delayState;
 bool modeState;
 
+int lastPotValue = -1; // Initialize to a value that won't match the initial read
+
+// Define Control Change values for each button
+const byte ccValues[6] = {16,17,18,19,20,21};
 
 //-----------------------------------------
 // MIDIUSB Functions
@@ -22,11 +26,13 @@ bool modeState;
 void noteOn(byte channel, byte pitch, byte velocity) {
   midiEventPacket_t noteOn = {0x09, 0x90 | channel, pitch, velocity};
   MidiUSB.sendMIDI(noteOn);
+  MidiUSB.flush();
 }
 
 void controlChange(byte channel, byte control, byte value) {
   midiEventPacket_t event = {0x0B, 0xB0 | channel, control, value};
   MidiUSB.sendMIDI(event);
+  MidiUSB.flush();
 }
 
 // Setup function
@@ -34,7 +40,6 @@ void setup() {
   Serial.begin(9600);
 
   // Configure pins based on assignments
-  // Digital Outputs for pins with "LED" assignment
   pinMode(LED_2, OUTPUT);
   pinMode(LED_1, OUTPUT);
   pinMode(LED_0, OUTPUT);
@@ -43,7 +48,6 @@ void setup() {
   pinMode(LED_5, OUTPUT);
   pinMode(LED_M, OUTPUT);
 
-  // Digital Inputs for pins with "BUT" assignment
   pinMode(BUT_2, INPUT_PULLUP);
   pinMode(BUT_1, INPUT_PULLUP);
   pinMode(BUT_0, INPUT_PULLUP);
@@ -52,11 +56,8 @@ void setup() {
   pinMode(BUT_3, INPUT_PULLUP);
   pinMode(BUT_M, INPUT_PULLUP);
 
-  // Digital Inputs for the Delay LED and button
   pinMode(BUT_D, INPUT_PULLUP);
   pinMode(LED_D, OUTPUT);
-
-  // Analog Input for EX assignment
   pinMode(POT_EX, INPUT);
 
   for (int i = 0; i < 6; i++) {
@@ -68,11 +69,9 @@ void setup() {
   delayState = false;
 
   currMode = FX;
-
 }
 
 void loop() {
-
   bool currentState;
 
   /************************/
@@ -80,39 +79,28 @@ void loop() {
   /************************/
 
   currentState = digitalRead(BUT_M);
-
   if (currentState != modeState) {
-      delay(DEBOUNCETIME); // Debounce delay
+    delay(DEBOUNCETIME); // Debounce delay
 
-      if (currentState != modeState) {
-
-          if (currentState == LOW) {
-
-              // Change mode
-              currMode = static_cast<Mode>((currMode + 1) % 2); // Cycle through modes
-              Serial.print("Current Mode: MODE_");
-              Serial.println(static_cast<int>(currMode)); // Print the current mode number
-
-          }
-
-          modeState = currentState; // Update the mode state
+    if (currentState != modeState) {
+      if (currentState == LOW) {
+        currMode = static_cast<Mode>((currMode + 1) % 2); // Cycle through modes
+        Serial.print("Current Mode: MODE_");
+        Serial.println(static_cast<int>(currMode)); // Print the current mode number
       }
+      modeState = currentState; // Update the mode state
+    }
   }
 
-  switch (currMode)  {
-
+  switch (currMode) {
   case FX:
-    digitalWrite(LED_M,HIGH);
+    digitalWrite(LED_M, HIGH);
     break;
-
   case CH:
-    digitalWrite(LED_M,LOW);
+    digitalWrite(LED_M, LOW);
     break;
-  
   default: // shouldn't happen but is here anyways
-
     break;
-
   }
 
   /************************/
@@ -120,40 +108,35 @@ void loop() {
   /************************/
 
   for (int i = 0; i < NUM_BUTTONS; i++) {
-    // Reading the button state from the appropriate pin
     currentState = digitalRead(buttonPins[i]);
 
     if (currentState != buttonStates[i]) {
-
       delay(DEBOUNCETIME); // Debounce delay
 
       if (currentState != buttonStates[i]) {
-
         if (currentState == LOW) {
-
-          // toggle LED, allows for TFF behaviour
+          // Toggle LED, allows for TFF behavior
           LEDStates[i] = !LEDStates[i];
+
+          // Send Control Change message
+          controlChange(0, ccValues[i], LEDStates[i] ? 0 : 127); // Turn on/off based on LED state
 
           // Output the pressed button number to the serial monitor
           Serial.print("Button ");
           Serial.print(i);
           Serial.println(" pressed.");
-          
         }
 
         buttonStates[i] = currentState; 
-
       }
     }
 
     // CONTROL BUTTONS LEDs
-
     if (LEDStates[i]) {
       digitalWrite(ledPins[i], HIGH);  // Turn on the corresponding LED
     } else {
       digitalWrite(ledPins[i], LOW);   // Turn off the corresponding LED
     }
-
   }
 
   /************************/
@@ -161,28 +144,46 @@ void loop() {
   /************************/
 
   currentState = digitalRead(BUT_D);
-
   if (currentState != delayState) {
+    delay(DEBOUNCETIME); // Debounce delay
 
-      delay(DEBOUNCETIME); // Debounce delay
+    if (currentState != delayState) {
+      if (currentState == LOW) {
 
-      if (currentState != delayState) {
+        Serial.print("Current Mode: Delay Tapped");
 
-          if (currentState == LOW) {
+        controlChange(0, CC_MIDI_MODULATION, 127);
+        digitalWrite(LED_D, HIGH);  // Turn on the corresponding LED
 
-            Serial.print("Current Mode: Delay Tapped");
-            digitalWrite(LED_D, HIGH);  // Turn on the corresponding LED
-            delay(DELAY_TAP_LED_TIME);
-            digitalWrite(LED_D, LOW);  // Turn on the corresponding LED
-              
-          } 
+        delay(DELAY_TAP_LED_TIME);
+        
+        digitalWrite(LED_D, LOW);  // Turn off the corresponding LED
+        controlChange(0, CC_MIDI_MODULATION, 0);
 
-          delayState = currentState; // Update the mode state
-      }
+      } 
+      delayState = currentState; // Update the mode state
+    }
   }
-    
+
+  /************************/
+  // POTENTIOMETER READ
+  /************************/
+
+  int potValue = analogRead(POT_EX); // Read the potentiometer value
+  byte ccValue = map(potValue, 0, 1023, 0, 127); // Map to MIDI CC range
+
+  // Check if the potentiometer value has changed
+  if (abs(potValue - lastPotValue) > POT_THRESHOLD) {
+    controlChange(0, CC_EFFECT_CONTROL_1, ccValue); // Send the Control Change message
+
+    // Print the potentiometer value and mapped CC value
+    Serial.print("Potentiometer Value: ");
+    Serial.print(potValue);
+    Serial.print(", Mapped CC Value: ");
+    Serial.println(ccValue);
+
+    // Update the last potentiometer value
+    lastPotValue = potValue; 
+  }
+
 }
-
-
-
-
