@@ -9,16 +9,19 @@
 Mode currMode;
 
 // States
-bool buttonStates[6];
-bool LEDStates[6];
+bool buttonStates[7];
+bool LEDStates[7];
 
 bool delayState;
 bool modeState;
 
-int lastPotValue = -1; // Initialize to a value that won't match the initial read
+int lastPotValueEx = -1;
+int lastPotValue0 = -1;
+int lastPotValue1 = -1;
+int lastPotValue2 = -1;
+bool lastButRead[3] = {0, 0, 0};
 
-// Define Control Change values for each button
-const byte ccValues[6] = {16,17,18,19,20,21};
+bool butRead[3];
 
 //-----------------------------------------
 // MIDIUSB Functions
@@ -40,31 +43,36 @@ void setup() {
   Serial.begin(9600);
 
   // Configure pins based on assignments
-  pinMode(LED_2, OUTPUT);
-  pinMode(LED_1, OUTPUT);
   pinMode(LED_0, OUTPUT);
+  pinMode(LED_1, OUTPUT);
+  pinMode(LED_2, OUTPUT);
   pinMode(LED_3, OUTPUT);
   pinMode(LED_4, OUTPUT);
   pinMode(LED_5, OUTPUT);
+  pinMode(LED_6, OUTPUT);
   pinMode(LED_M, OUTPUT);
-
-  pinMode(BUT_2, INPUT_PULLUP);
-  pinMode(BUT_1, INPUT_PULLUP);
-  pinMode(BUT_0, INPUT_PULLUP);
-  pinMode(BUT_5, INPUT_PULLUP);
-  pinMode(BUT_4, INPUT_PULLUP);
-  pinMode(BUT_3, INPUT_PULLUP);
-  pinMode(BUT_M, INPUT_PULLUP);
-
-  pinMode(BUT_D, INPUT_PULLUP);
   pinMode(LED_D, OUTPUT);
-  pinMode(POT_EX, INPUT);
 
-  for (int i = 0; i < 6; i++) {
+  pinMode(BUT_BIN_0, INPUT);
+  pinMode(BUT_BIN_1, INPUT);
+  pinMode(BUT_BIN_2, INPUT);
+  pinMode(BUT_M, INPUT_PULLUP);
+  pinMode(BUT_D, INPUT_PULLUP);
+  
+  pinMode(POT_EX, INPUT);
+  pinMode(POT_0, INPUT);
+  pinMode(POT_1, INPUT);
+  pinMode(POT_2, INPUT);
+
+  for (int i = 0; i < sizeof(buttonStates) / sizeof(buttonStates[0]); i++) {
     buttonStates[i] = false;  // Set each button state to false
     LEDStates[i] = false;
   }
 
+  for (int i = 0; i < sizeof(butRead) / sizeof(butRead); i++) {
+    butRead[i] = false;
+  }
+ 
   modeState = false;
   delayState = false;
 
@@ -107,29 +115,43 @@ void loop() {
   // CONTROL BUTTONS FX
   /************************/
 
-  for (int i = 0; i < NUM_BUTTONS; i++) {
-    currentState = digitalRead(buttonPins[i]);
+  butRead[0] = digitalRead(BUT_BIN_0);
+  butRead[1] = digitalRead(BUT_BIN_1);
+  butRead[2] = digitalRead(BUT_BIN_2);
 
-    if (currentState != buttonStates[i]) {
-      delay(DEBOUNCETIME); // Debounce delay
+  // Check for a change from 0 to 1 (button press)
+  if ((butRead[0] && !lastButRead[0]) || (butRead[1] && !lastButRead[1]) || (butRead[2] && !lastButRead[2])) {
+    
+    delay(BUT_READ_WAIT_TIME); // Debounce delay
 
-      if (currentState != buttonStates[i]) {
-        if (currentState == LOW) {
-          // Toggle LED, allows for TFF behavior
-          LEDStates[i] = !LEDStates[i];
+    // Re-read to confirm the button is still pressed
+    butRead[0] = digitalRead(BUT_BIN_0);
+    butRead[1] = digitalRead(BUT_BIN_1);
+    butRead[2] = digitalRead(BUT_BIN_2);
 
-          // Send Control Change message
-          controlChange(0, ccValues[i], LEDStates[i] ? 0 : 127); // Turn on/off based on LED state
+    if (butRead[0] || butRead[1] || butRead[2]) {
+      // Calculate decimal value from binary state
+      int numBut = ((butRead[2] << 2) | (butRead[1] << 1) | butRead[0]) - 1;
 
-          // Output the pressed button number to the serial monitor
-          Serial.print("Button ");
-          Serial.print(i);
-          Serial.println(" pressed.");
-        }
+      // Toggle the LED state for the button
+      LEDStates[numBut] = !LEDStates[numBut];
+      
+      // Send MIDI Control Change message based on LED state
+      controlChange(0, ccValues[numBut], LEDStates[numBut] ? 0 : 127);
 
-        buttonStates[i] = currentState; 
-      }
+      // Output the button number to the serial monitor
+      Serial.print("Button ");
+      Serial.print(numBut);
+      Serial.println(" pressed.");
     }
+  }
+
+  // Update the last known states for the next loop iteration
+  lastButRead[0] = butRead[0];
+  lastButRead[1] = butRead[1];
+  lastButRead[2] = butRead[2];
+
+  for (int i = 0; i < sizeof(ledPins) / sizeof(ledPins[0]); i++) {
 
     // CONTROL BUTTONS LEDs
     if (LEDStates[i]) {
@@ -169,21 +191,51 @@ void loop() {
   // POTENTIOMETER READ
   /************************/
 
-  int potValue = analogRead(POT_EX); // Read the potentiometer value
-  byte ccValue = map(potValue, 0, 1023, 0, 127); // Map to MIDI CC range
+  /************************/
+  // POTENTIOMETER READS
+  /************************/
 
-  // Check if the potentiometer value has changed
-  if (abs(potValue - lastPotValue) > POT_THRESHOLD) {
-    controlChange(0, CC_EFFECT_CONTROL_1, ccValue); // Send the Control Change message
+  // Read each potentiometer and send MIDI CC if the value has changed
 
-    // Print the potentiometer value and mapped CC value
-    Serial.print("Potentiometer Value: ");
-    Serial.print(potValue);
-    Serial.print(", Mapped CC Value: ");
-    Serial.println(ccValue);
+  // Potentiometer EX
+  int potValueEx = analogRead(POT_EX);
+  byte ccValueEx = map(potValueEx, 0, 1023, 0, 127);
+  if (abs(potValueEx - lastPotValueEx) > POT_THRESHOLD) {
+    controlChange(0, POT_CC_EX, ccValueEx);
+    Serial.print("Pot EX Value: ");
+    Serial.println(ccValueEx);
+    lastPotValueEx = potValueEx;
+  }
 
-    // Update the last potentiometer value
-    lastPotValue = potValue; 
+  // Potentiometer 0
+  int potValue0 = analogRead(POT_0);
+  byte ccValue0 = map(potValue0, 0, 1023, 0, 127);
+  if (abs(potValue0 - lastPotValue0) > POT_THRESHOLD) {
+    controlChange(0, POT_CC_0, ccValue0);
+    Serial.print("Pot 0 Value: ");
+    Serial.println(ccValue0);
+    lastPotValue0 = potValue0;
+  }
+
+  // Potentiometer 1
+  int potValue1 = analogRead(POT_1);
+  byte ccValue1 = map(potValue1, 0, 1023, 0, 127);
+  if (abs(potValue1 - lastPotValue1) > POT_THRESHOLD) {
+    controlChange(0, POT_CC_1, ccValue1);
+    Serial.print("Pot 1 Value: ");
+    Serial.println(ccValue1);
+    lastPotValue1 = potValue1;
+  }
+
+  // Potentiometer 2
+  int potValue2 = analogRead(POT_2);
+  byte ccValue2 = map(potValue2, 0, 1023, 0, 127);
+  if (abs(potValue2 - lastPotValue2) > POT_THRESHOLD) {
+    controlChange(0, POT_CC_2, ccValue2);
+    Serial.print("Pot 2 Value: ");
+    Serial.println(ccValue2);
+    lastPotValue2 = potValue2;
   }
 
 }
+
