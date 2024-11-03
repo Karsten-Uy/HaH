@@ -12,7 +12,13 @@ Mode currMode;
 bool LEDStates[7];
 
 bool delayState;
-bool modeState = false; // Flag to track if button press was detected
+unsigned long pressStartTime = 0;
+bool holding;
+bool holdSignalSent;
+bool isMute;
+bool unmuteReady;
+
+bool modeState; // Flag to track if button press was detected
 
 int lastPotValueEx = -1;
 int lastPotValue0 = -1;
@@ -65,6 +71,8 @@ void setup() {
 
   for (int i = 0; i < sizeof(LEDStates) / sizeof(LEDStates[0]); i++) {
     LEDStates[i] = false;
+    controlChange(MIDI_CHANNEL, ccValues_FX[i], 127);
+    controlChange(MIDI_CHANNEL, ccValues_CH[i], 127);
   }
 
   for (int i = 0; i < sizeof(butRead) / sizeof(butRead); i++) {
@@ -72,11 +80,16 @@ void setup() {
   }
 
   delayState = false;
+  holding = false;
+  holdSignalSent = false;
+  isMute = false;
+  unmuteReady = false;
 
   modeState = false;
-  digitalWrite(LED_M, LOW);
 
   currMode = FX;
+  digitalWrite(LED_M, HIGH);
+
 }
 
 void loop() {
@@ -86,8 +99,6 @@ void loop() {
   /************************/
   // MODE SELECTOR
   /************************/
-
-
 
   currentState = digitalRead(BUT_M);
 
@@ -104,13 +115,13 @@ void loop() {
           switch (currMode) { // this runs before any processing for that mode
           case FX:
               for (int i = 0; i < sizeof(LEDStates) / sizeof(LEDStates[0]); i++) { // turn all channels off
-                  controlChange(MIDI_CHANNEL, ccValues_FX[i], 0);
+                  controlChange(MIDI_CHANNEL, ccValues_FX[i], 127);
               }
               break;
 
           case CH:
               for (int i = 0; i < sizeof(LEDStates) / sizeof(LEDStates[0]); i++) { // turn all channels off
-                  controlChange(MIDI_CHANNEL, ccValues_CH[i], 0);
+                  controlChange(MIDI_CHANNEL, ccValues_CH[i], 127);
               }
               break;
 
@@ -138,7 +149,10 @@ void loop() {
               for (int i = 0; i < sizeof(LEDStates) / sizeof(LEDStates[0]); i++) {
                   LEDStates[i] = false;
               }
+
               LEDStates[0] = true; // Let 1 channel through
+              controlChange(MIDI_CHANNEL, ccValues_CH[0], 0);
+
               digitalWrite(LED_M, LOW);
               break;
 
@@ -192,10 +206,10 @@ void loop() {
         for (int i = 0; i < sizeof(LEDStates) / sizeof(LEDStates[0]); i++) {
 
           if (i == numBut) {
-            controlChange(MIDI_CHANNEL, ccValues_CH[i], 127);
+            controlChange(MIDI_CHANNEL, ccValues_CH[i], 0);
             LEDStates[i] = true;
           } else {
-            controlChange(MIDI_CHANNEL, ccValues_CH[i], 0);
+            controlChange(MIDI_CHANNEL, ccValues_CH[i], 127);
             LEDStates[i] = false;
           }
 
@@ -235,34 +249,64 @@ void loop() {
   }
 
   /************************/
-  // DELAY TAPPER
+  // DELAY TAPPER / MUTE
   /************************/
 
   currentState = digitalRead(BUT_D);
   if (currentState != delayState) {
-    delay(DEBOUNCETIME); // Debounce delay
+      delay(DEBOUNCETIME); // Debounce delay
 
-    if (currentState != delayState) {
-      if (currentState == LOW) {
+      if (currentState != delayState) {
+          if (currentState == LOW) {  // Button pressed
 
-        Serial.print("Current Mode: Delay Tapped");
+              // If already muted, prepare for unmute on tap release
+              if (isMute && !holding) {
+                  unmuteReady = true;  // Set flag to allow unmute on release
+              }
 
-        controlChange(MIDI_CHANNEL, CC_MIDI_MODULATION, 127);
-        digitalWrite(LED_D, HIGH);  // Turn on the corresponding LED
+              Serial.println("Delay Tapped");
+              controlChange(MIDI_CHANNEL, DEL_TAP_CC, 127);
+              delay(DELAY_TAP_LED_TIME);
+              controlChange(MIDI_CHANNEL, DEL_TAP_CC, 0);
 
-        delay(DELAY_TAP_LED_TIME);
-        
-        digitalWrite(LED_D, LOW);  // Turn off the corresponding LED
-        controlChange(MIDI_CHANNEL, CC_MIDI_MODULATION, 0);
+              // Start holding logic for the current press
+              pressStartTime = millis();
+              holding = true;
+              holdSignalSent = false; // Reset hold signal for this press
 
-      } 
-      delayState = currentState; // Update the mode state
-    }
+          } else {  // Button released
+
+              if (unmuteReady) {  // Check if ready to unmute on release
+
+                  controlChange(MIDI_CHANNEL, MUTE_CC, 0);
+                  Serial.println("Unmuted");
+                  digitalWrite(LED_D, LOW);  // Turn off the corresponding LED
+                  isMute = false;
+                  unmuteReady = false;  // Reset unmute flag
+
+              }
+
+              holding = false; // Reset holding status on release
+          }
+
+          delayState = currentState; // Update the mode state
+      }
   }
 
-  /************************/
-  // POTENTIOMETER READ
-  /************************/
+  // Holding check, independent of the initial button press check
+  if (!unmuteReady && holding && !holdSignalSent && (millis() - pressStartTime >= MUTE_HOLD_TIME)) {
+      
+      // Trigger mute action for holding
+      controlChange(MIDI_CHANNEL, MUTE_CC, 127);
+      Serial.println("Mute triggered!");
+      digitalWrite(LED_D, HIGH);  // Turn on the corresponding LED
+      isMute = true;
+
+      holdSignalSent = true; // Ensure hold signal is only sent once per press
+      unmuteReady = false;   // Reset unmute readiness since it's now held
+
+  }
+
 
   /************************/
   // POTENTIOMETER READS
@@ -292,7 +336,7 @@ void loop() {
 
   // Potentiometer 1
   int potValue1 = analogRead(POT_1);
-  byte ccValue1 = map(potValue1, 0, 1023, 0, 127);
+  byte ccValue1 = 127 - map(potValue1, 0, 1023, 0, 127);
   if (abs(potValue1 - lastPotValue1) > POT_THRESHOLD) {
     controlChange(MIDI_CHANNEL, POT_CC_1, ccValue1);
     Serial.print("Pot 1 Value: ");

@@ -8,22 +8,21 @@ Pin assignment
 | VCC        | Regulated 5V output                   |
 | GND        | Ground                                |
 | RST        | Reset                                 |
-| TX0        | Serial Transmit (TX) - Digital Pin 1  | B2
-| RX1        | Serial Receive (RX) - Digital Pin 0   | B1
-| 2          | Digital Pin 2                         | B0
-| 3          | Digital Pin 3 / PWM                   | B5
-| 4          | Digital Pin 4                         | B4
-| 5          | Digital Pin 5 / PWM                   | B3
-| 6          | Digital Pin 6 / PWM                   | L2
-| 7          | Digital Pin 7                         | L1
-| 8          | Digital Pin 8                         | L0
-| 9          | Digital Pin 9 / PWM                   | L3
-| 10         | Digital Pin 10 / PWM                  | L4
-| 16         | Digital Pin 16                        | L5
-| 14         | Digital Pin 14                        | L_SW
-| 14         | Digital Pin 15                        | B_SW
-| A0         | Analog Pin 0                          | B_DE
-| A1         | Analog Pin 1                          | L_DE
-| A2         | Analog Pin 2                          | 
-| A3         | Analog Pin 3                          | EX
-
+| TX0        | Serial Transmit (TX) - Digital Pin 1  | BUT_BIN_02 |
+| RX1        | Serial Receive (RX) - Digital Pin 0   | BUT_BIN_11 |
+| 2          | Digital Pin 2                         | BUT_BIN_20 |
+| 3          | Digital Pin 3 / PWM                   | LED_D      |
+| 4          | Digital Pin 4                         | BUT_D      |
+| 5          | Digital Pin 5 / PWM                   | LED_2      |
+| 6          | Digital Pin 6 / PWM                   | LED_1      |
+| 7          | Digital Pin 7                         | LED_0      |
+| 8          | Digital Pin 8                         | LED_3      |
+| 9          | Digital Pin 9 / PWM                   | LED_6      |
+| 10         | Digital Pin 10 / PWM                  | LED_4      |
+| 14         | Digital Pin 14                        | LED_M      |
+| 15         | Digital Pin 15                        | BUT_M      |
+| 16         | Digital Pin 16                        | LED_5      |
+| A0         | Analog Pin 0                          | POT_2      |
+| A1         | Analog Pin 1                          | POT_1      |
+| A2         | Analog Pin 2                          | POT_0      |
+| A3         | Analog Pin 3                          | POT_EX     |
