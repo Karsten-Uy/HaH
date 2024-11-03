@@ -64,7 +64,7 @@ const byte CC_ALL_NOTES_OFF = 123;              // All Notes Off
 const byte CC_OMNI_MODE_OFF = 124;              // Omni Mode Off
 const byte CC_OMNI_MODE_ON = 125;               // Omni Mode On
 const byte CC_MONO_MODE_ON = 126;               // Mono Mode On
-const byte CC_POLY_MODE_ON = 127;               // Poly Mode On
+const byte CC_POLY_MODE_ON = 127;               // Poly Mode On   //max is 127
 
 // Additional commonly used MIDI CCs
 const byte CC_SUSTAIN_PEDAL = 64;               // Sustain Pedal
@@ -81,7 +81,4 @@ const byte CC_SOUND_TUNE = 76;                  // Sound Tune
 const byte CC_SOUND_LEVEL = 77;                 // Sound Level
 const byte CC_MIDI_MODULATION = 78;             // MIDI Modulation
 
-// Custom CCs for your application (modify as needed)
-const byte CC_POT_EX = 10;                      // Potentiometer Example
-const byte CC_POT_OTHER = 11;                   // Another Potentiometer Example
 // Add additional custom CC constants as needed
