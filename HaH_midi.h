@@ -44,7 +44,10 @@ const byte POT_CC_0 = 1;
 const byte POT_CC_1 = 2;
 const byte POT_CC_2 = 3;
 
-const byte ccValues[6] = {16,17,18,19,20,21};
+const byte ccValues_FX[7] = { 4, 5, 6, 7, 8, 9,10};
+const byte ccValues_CH[7] = {11,12,13,14,15,16,17};
+
+const byte MIDI_CHANNEL = 0;
 
 
 

@@ -9,11 +9,10 @@
 Mode currMode;
 
 // States
-bool buttonStates[7];
 bool LEDStates[7];
 
 bool delayState;
-bool modeState;
+bool modeState = false; // Flag to track if button press was detected
 
 int lastPotValueEx = -1;
 int lastPotValue0 = -1;
@@ -64,60 +63,104 @@ void setup() {
   pinMode(POT_1, INPUT);
   pinMode(POT_2, INPUT);
 
-  for (int i = 0; i < sizeof(buttonStates) / sizeof(buttonStates[0]); i++) {
-    buttonStates[i] = false;  // Set each button state to false
+  for (int i = 0; i < sizeof(LEDStates) / sizeof(LEDStates[0]); i++) {
     LEDStates[i] = false;
   }
 
   for (int i = 0; i < sizeof(butRead) / sizeof(butRead); i++) {
     butRead[i] = false;
   }
- 
-  modeState = false;
+
   delayState = false;
+
+  modeState = false;
+  digitalWrite(LED_M, LOW);
 
   currMode = FX;
 }
 
 void loop() {
+
   bool currentState;
 
   /************************/
   // MODE SELECTOR
   /************************/
 
+
+
   currentState = digitalRead(BUT_M);
-  if (currentState != modeState) {
-    delay(DEBOUNCETIME); // Debounce delay
 
-    if (currentState != modeState) {
-      if (currentState == LOW) {
-        currMode = static_cast<Mode>((currMode + 1) % 2); // Cycle through modes
-        Serial.print("Current Mode: MODE_");
-        Serial.println(static_cast<int>(currMode)); // Print the current mode number
+  // Check for button press and release
+  if (currentState == LOW && !modeState) { // Button is pressed (assuming LOW is pressed)
+      delay(DEBOUNCETIME); // Debounce delay
+
+      if (digitalRead(BUT_M) == LOW) { // Confirm the button is still pressed after debounce
+          modeState = true; // Set flag to indicate button is currently pressed
+
+          //------------------------------
+          // RESETS - Pre Switch
+
+          switch (currMode) { // this runs before any processing for that mode
+          case FX:
+              for (int i = 0; i < sizeof(LEDStates) / sizeof(LEDStates[0]); i++) { // turn all channels off
+                  controlChange(MIDI_CHANNEL, ccValues_FX[i], 0);
+              }
+              break;
+
+          case CH:
+              for (int i = 0; i < sizeof(LEDStates) / sizeof(LEDStates[0]); i++) { // turn all channels off
+                  controlChange(MIDI_CHANNEL, ccValues_CH[i], 0);
+              }
+              break;
+
+          default:
+              break;
+          }
+
+          // Change mode (T flip-flop behavior)
+          currMode = static_cast<Mode>((currMode + 1) % 2); // Cycle through modes
+          Serial.print("Current Mode: MODE_");
+          Serial.println(static_cast<int>(currMode)); // Print the current mode number
+
+          //---------------------------
+          // RESETS - Post Switch
+
+          switch (currMode) { // this runs after switching modes
+          case FX:
+              for (int i = 0; i < sizeof(LEDStates) / sizeof(LEDStates[0]); i++) {
+                  LEDStates[i] = false;
+              }
+              digitalWrite(LED_M, HIGH);
+              break;
+
+          case CH:
+              for (int i = 0; i < sizeof(LEDStates) / sizeof(LEDStates[0]); i++) {
+                  LEDStates[i] = false;
+              }
+              LEDStates[0] = true; // Let 1 channel through
+              digitalWrite(LED_M, LOW);
+              break;
+
+          default:
+              break;
+          }
       }
-      modeState = currentState; // Update the mode state
-    }
+
+  } else if (currentState == HIGH && modeState) {
+      // Button released
+      modeState = false; // Reset flag for next press
   }
 
-  switch (currMode) {
-  case FX:
-    digitalWrite(LED_M, HIGH);
-    break;
-  case CH:
-    digitalWrite(LED_M, LOW);
-    break;
-  default: // shouldn't happen but is here anyways
-    break;
-  }
 
-  /************************/
-  // CONTROL BUTTONS FX
-  /************************/
+  
 
   butRead[0] = digitalRead(BUT_BIN_0);
   butRead[1] = digitalRead(BUT_BIN_1);
   butRead[2] = digitalRead(BUT_BIN_2);
+
+  //--------------------------------------
+  // CONTROL BUTTONS FX
 
   // Check for a change from 0 to 1 (button press)
   if ((butRead[0] && !lastButRead[0]) || (butRead[1] && !lastButRead[1]) || (butRead[2] && !lastButRead[2])) {
@@ -133,11 +176,40 @@ void loop() {
       // Calculate decimal value from binary state
       int numBut = ((butRead[2] << 2) | (butRead[1] << 1) | butRead[0]) - 1;
 
-      // Toggle the LED state for the button
-      LEDStates[numBut] = !LEDStates[numBut];
-      
+      switch (currMode) {
+
+      case FX:
+
+        // Toggle the LED state for the button
+        LEDStates[numBut] = !LEDStates[numBut];
+
+        controlChange(MIDI_CHANNEL, ccValues_FX[numBut], LEDStates[numBut] ? 0 : 127);
+
+        break;
+
+      case CH:
+
+        for (int i = 0; i < sizeof(LEDStates) / sizeof(LEDStates[0]); i++) {
+
+          if (i == numBut) {
+            controlChange(MIDI_CHANNEL, ccValues_CH[i], 127);
+            LEDStates[i] = true;
+          } else {
+            controlChange(MIDI_CHANNEL, ccValues_CH[i], 0);
+            LEDStates[i] = false;
+          }
+
+        }
+
+        break;
+
+      default: // shouldn't happen but is here anyways
+        break;
+      }
+
+
       // Send MIDI Control Change message based on LED state
-      controlChange(0, ccValues[numBut], LEDStates[numBut] ? 0 : 127);
+      
 
       // Output the button number to the serial monitor
       Serial.print("Button ");
@@ -145,6 +217,7 @@ void loop() {
       Serial.println(" pressed.");
     }
   }
+
 
   // Update the last known states for the next loop iteration
   lastButRead[0] = butRead[0];
@@ -174,13 +247,13 @@ void loop() {
 
         Serial.print("Current Mode: Delay Tapped");
 
-        controlChange(0, CC_MIDI_MODULATION, 127);
+        controlChange(MIDI_CHANNEL, CC_MIDI_MODULATION, 127);
         digitalWrite(LED_D, HIGH);  // Turn on the corresponding LED
 
         delay(DELAY_TAP_LED_TIME);
         
         digitalWrite(LED_D, LOW);  // Turn off the corresponding LED
-        controlChange(0, CC_MIDI_MODULATION, 0);
+        controlChange(MIDI_CHANNEL, CC_MIDI_MODULATION, 0);
 
       } 
       delayState = currentState; // Update the mode state
@@ -201,7 +274,7 @@ void loop() {
   int potValueEx = analogRead(POT_EX);
   byte ccValueEx = map(potValueEx, 0, 1023, 0, 127);
   if (abs(potValueEx - lastPotValueEx) > POT_THRESHOLD) {
-    controlChange(0, POT_CC_EX, ccValueEx);
+    controlChange(MIDI_CHANNEL, POT_CC_EX, ccValueEx);
     Serial.print("Pot EX Value: ");
     Serial.println(ccValueEx);
     lastPotValueEx = potValueEx;
@@ -211,7 +284,7 @@ void loop() {
   int potValue0 = analogRead(POT_0);
   byte ccValue0 = map(potValue0, 0, 1023, 0, 127);
   if (abs(potValue0 - lastPotValue0) > POT_THRESHOLD) {
-    controlChange(0, POT_CC_0, ccValue0);
+    controlChange(MIDI_CHANNEL, POT_CC_0, ccValue0);
     Serial.print("Pot 0 Value: ");
     Serial.println(ccValue0);
     lastPotValue0 = potValue0;
@@ -221,7 +294,7 @@ void loop() {
   int potValue1 = analogRead(POT_1);
   byte ccValue1 = map(potValue1, 0, 1023, 0, 127);
   if (abs(potValue1 - lastPotValue1) > POT_THRESHOLD) {
-    controlChange(0, POT_CC_1, ccValue1);
+    controlChange(MIDI_CHANNEL, POT_CC_1, ccValue1);
     Serial.print("Pot 1 Value: ");
     Serial.println(ccValue1);
     lastPotValue1 = potValue1;
@@ -231,7 +304,7 @@ void loop() {
   int potValue2 = analogRead(POT_2);
   byte ccValue2 = map(potValue2, 0, 1023, 0, 127);
   if (abs(potValue2 - lastPotValue2) > POT_THRESHOLD) {
-    controlChange(0, POT_CC_2, ccValue2);
+    controlChange(MIDI_CHANNEL, POT_CC_2, ccValue2);
     Serial.print("Pot 2 Value: ");
     Serial.println(ccValue2);
     lastPotValue2 = potValue2;
