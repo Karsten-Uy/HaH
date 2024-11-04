@@ -26,13 +26,19 @@ const int POT_0 = A1;     // Analog Pin 3 (Assignment EX)
 const int POT_1 = A2;     // Analog Pin 3 (Assignment EX)
 const int POT_2 = A3;     // Analog Pin 3 (Assignment EX)
 
-// Other
+// Times
 const int DEBOUNCETIME = 5;
 const int BUT_READ_WAIT_TIME = 10;
 const int DELAY_TAP_LED_TIME = 5;
+const int MUTE_HOLD_TIME = 1000;
+
+//EX Pot Calibration Constants
+const int POT_EX_START_VAL = 100;
+const int POT_EX_END_VAL = 850;
+
+// Other
 const int RELEASEVEL = 127;
 const int POT_THRESHOLD = 5;
-const int MUTE_HOLD_TIME = 1500;
 
 
 // Array of LED pin constants
@@ -47,6 +53,8 @@ const byte POT_CC_2 = 3;
 
 const byte DEL_TAP_CC = 4;
 const byte MUTE_CC = 5;
+
+const byte CC_FX_MUTE = 6;
 
 const byte ccValues_FX[7] = { 14, 15, 16, 17, 18, 19, 20 };
 const byte ccValues_CH[7] = { 21, 22, 23, 24, 25, 26, 27 };

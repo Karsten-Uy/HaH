@@ -117,6 +117,7 @@ void loop() {
               for (int i = 0; i < sizeof(LEDStates) / sizeof(LEDStates[0]); i++) { // turn all channels off
                   controlChange(MIDI_CHANNEL, ccValues_FX[i], 127);
               }
+              controlChange(MIDI_CHANNEL, CC_FX_MUTE, 127);
               break;
 
           case CH:
@@ -142,6 +143,7 @@ void loop() {
               for (int i = 0; i < sizeof(LEDStates) / sizeof(LEDStates[0]); i++) {
                   LEDStates[i] = false;
               }
+              controlChange(MIDI_CHANNEL, CC_FX_MUTE, 0);
               digitalWrite(LED_M, HIGH);
               break;
 
@@ -316,8 +318,10 @@ void loop() {
 
   // Potentiometer EX
   int potValueEx = analogRead(POT_EX);
-  byte ccValueEx = map(potValueEx, 0, 1023, 0, 127);
+  byte ccValueEx = map(potValueEx, POT_EX_START_VAL, POT_EX_END_VAL, 0, 127);
+
   if (abs(potValueEx - lastPotValueEx) > POT_THRESHOLD) {
+  
     controlChange(MIDI_CHANNEL, POT_CC_EX, ccValueEx);
     Serial.print("Pot EX Value: ");
     Serial.println(ccValueEx);
@@ -328,7 +332,7 @@ void loop() {
   int potValue0 = analogRead(POT_0);
   byte ccValue0 = map(potValue0, 0, 1023, 0, 127);
   if (abs(potValue0 - lastPotValue0) > POT_THRESHOLD) {
-    controlChange(MIDI_CHANNEL, POT_CC_0, ccValue0);
+    controlChange(MIDI_CHANNEL, POT_CC_0, 127 - ccValue0);
     Serial.print("Pot 0 Value: ");
     Serial.println(ccValue0);
     lastPotValue0 = potValue0;
@@ -348,7 +352,7 @@ void loop() {
   int potValue2 = analogRead(POT_2);
   byte ccValue2 = map(potValue2, 0, 1023, 0, 127);
   if (abs(potValue2 - lastPotValue2) > POT_THRESHOLD) {
-    controlChange(MIDI_CHANNEL, POT_CC_2, ccValue2);
+    controlChange(MIDI_CHANNEL, POT_CC_2, 127 - ccValue2);
     Serial.print("Pot 2 Value: ");
     Serial.println(ccValue2);
     lastPotValue2 = potValue2;
