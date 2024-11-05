@@ -1,28 +1,47 @@
-# HaH
+# Helix at Home (HaH)
 
-Pin assignment
+This project is an Arduino-based MIDI controller, designed with an Arduino Pro Micro to manage buttons, potentiometers, and LEDs for controlling MIDI effects and channel settings, effectively simulating a guitar pedalboard. The controller features multiple modes that alter the behavior of MIDI controls, allowing for versatile customization of effects. 
 
-| Pin Number | Description                           | Assignment |
-|------------|---------------------------------------| -----------|
-| RAW        | Unregulated voltage input (up to 12V) |
-| VCC        | Regulated 5V output                   |
-| GND        | Ground                                |
-| RST        | Reset                                 |
-| TX0        | Serial Transmit (TX) - Digital Pin 1  | BUT_BIN_02 |
-| RX1        | Serial Receive (RX) - Digital Pin 0   | BUT_BIN_11 |
-| 2          | Digital Pin 2                         | BUT_BIN_20 |
-| 3          | Digital Pin 3 / PWM                   | LED_D      |
-| 4          | Digital Pin 4                         | BUT_D      |
-| 5          | Digital Pin 5 / PWM                   | LED_2      |
-| 6          | Digital Pin 6 / PWM                   | LED_1      |
-| 7          | Digital Pin 7                         | LED_0      |
-| 8          | Digital Pin 8                         | LED_3      |
-| 9          | Digital Pin 9 / PWM                   | LED_6      |
-| 10         | Digital Pin 10 / PWM                  | LED_4      |
-| 14         | Digital Pin 14                        | LED_M      |
-| 15         | Digital Pin 15                        | BUT_M      |
-| 16         | Digital Pin 16                        | LED_5      |
-| A0         | Analog Pin 0                          | POT_2      |
-| A1         | Analog Pin 1                          | POT_1      |
-| A2         | Analog Pin 2                          | POT_0      |
-| A3         | Analog Pin 3                          | POT_EX     |
+- For setup and usage details, refer to the "Usage Documentation" folder.
+- For details on MIDI outputs, refer to the "MIDI CC Assignments" sections in the "HaH_midi.h" file
+
+[INSERT BOARD IMAGE HERE]
+
+## Table of Contents
+- [Features](#features)
+- [Components](#components)
+- [Usage](#usage)
+- [Configuration](#configuration)
+
+## Features
+For more detailed functionality see the "Usage Documentation" folder.
+- **Multi Mode Control**: Switch between Channel (CH) and Effects (FX) modes.
+- **MIDI Control Change (CC) Messages**: Has has following buttons and potentiometers that send specific MIDI CC messages for flexible control.
+    - 7 Select Buttons
+    - 1 Mode Select Buttons
+    - 1 Mute / Delay Tapper Button
+    - 3 Global Potentiometers
+    - 1 Expression Pedal
+
+- **Debouncing**: Smooth button presses to reduce unintended triggers.
+- **Potentiometer Calibration**: Adjustable sensitivity and threshold for accurate readings.
+- **Visual Feedback**: LEDs provide visual status of each mode and button press.
+
+## Components
+- **Arduino Pro Micro** - The microcontroller board.
+- **Select Buttons (Digital)** - Used for switching modes, effects, and channels.
+- **LEDs** - Provide visual feedback.
+- **Potentiometers (Analog)** - Used to adjust effect levels.
+- **MIDIUSB** - Libraries for MIDI communication.
+- **Physical Board** - Built with the following to structure and hold the eletrical components
+    - Paper Organizer for base
+    - Tape
+    - Macbook Box for structure and button covers
+    - Lego for pedal 
+## Configuration
+- **Debounce Time (`DEBOUNCETIME`)**: Adjusts the debounce delay in milliseconds.
+- **Potentiometer Calibration (`POT_EX_START_VAL`, `POT_EX_END_VAL`)**: Defines the sensitivity range for the main potentiometer.
+- **MIDI Channel**: Configured via `MIDI_CHANNEL`, which can be changed based on your MIDI setup.
+
+
+

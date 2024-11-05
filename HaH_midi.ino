@@ -1,5 +1,4 @@
 #include "MIDIUSB.h"
-#include <Control_Surface.h>
 #include "HaH_midi.h"
 
 /*******************/
