@@ -1,6 +1,6 @@
 # Arduino and Electrical Setup
 
-This age has the details on how the arduino and the circuits are set up
+Thisp age has the details on how the arduino and the circuits are set up
 
 ## Pin Assignments
 
