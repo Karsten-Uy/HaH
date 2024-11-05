@@ -62,7 +62,7 @@ const byte POT_CC_2 = 10;
 const byte DEL_TAP_CC = 96;
 const byte MUTE_CC = 120;
 
-const byte CC_FX_MUTE = 67;
+const byte CC_FX_MUTE = 69;
 
 const byte ccValues_KB[7] = { 70, 71, 72, 73, 74, 75, 76 };
 const byte ccValues_FX[7] = { 32, 33, 34, 35, 36, 37, 38 };
