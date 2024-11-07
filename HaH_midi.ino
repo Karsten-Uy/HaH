@@ -131,6 +131,8 @@ void loop() {
               for (int i = 0; i < sizeof(LEDStates) / sizeof(LEDStates[0]); i++) {
                   controlChange(MIDI_CHANNEL, ccValues_KB[i], 127);
               }
+              isKB_5 = false;
+              isKB_6 = false;
               break;
 
           case FX:

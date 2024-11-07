@@ -1,8 +1,37 @@
+//-----------------------
+// Modes
+
 enum Mode {
-  KB,
-  FX,
-  CH
+  KB, // 1
+  FX, // 2
+  CH  // 3
 };
+
+//-----------------------
+// MIDI CC Assignments
+
+const byte POT_CC_EX = 4;
+const byte POT_CC_KB_5 = 66;
+const byte POT_CC_KB_6 = 67;
+
+const byte POT_CC_0 = 12;
+const byte POT_CC_1 = 13;
+const byte POT_CC_2 = 10;
+
+const byte DEL_TAP_CC = 96;
+const byte MUTE_CC = 120;
+
+const byte CC_FX_MUTE = 69;
+
+const byte ccValues_KB[7] = { 70, 71, 72, 73, 74, 75, 76 };
+const byte ccValues_FX[7] = { 32, 33, 34, 35, 36, 37, 38 };
+const byte ccValues_CH[7] = { 39, 40, 41, 42, 43, 44, 45 };
+
+const byte MIDI_CHANNEL = 0;
+
+
+
+
 
 // Input Pins with board constants
 const int BUT_BIN_0 = 0;       // Serial Transmit (TX) - Digital Pin 1
@@ -49,24 +78,4 @@ const int POT_THRESHOLD = 5;
 const int ledPins[7] = {LED_0, LED_1, LED_2, LED_3, LED_4, LED_5, LED_6};
 
 
-// MIDI CC Assignments
-
-const byte POT_CC_EX = 4;
-const byte POT_CC_KB_5 = 66;
-const byte POT_CC_KB_6 = 67;
-
-const byte POT_CC_0 = 12;
-const byte POT_CC_1 = 13;
-const byte POT_CC_2 = 10;
-
-const byte DEL_TAP_CC = 96;
-const byte MUTE_CC = 120;
-
-const byte CC_FX_MUTE = 69;
-
-const byte ccValues_KB[7] = { 70, 71, 72, 73, 74, 75, 76 };
-const byte ccValues_FX[7] = { 32, 33, 34, 35, 36, 37, 38 };
-const byte ccValues_CH[7] = { 39, 40, 41, 42, 43, 44, 45 };
-
-const byte MIDI_CHANNEL = 0;
 
