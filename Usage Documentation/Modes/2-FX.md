@@ -1,5 +1,5 @@
 # 2 - FX Mode
-FX Mode is designed to stack effects on a single channel, with the MIDI value select button mapped to bypass specific effects on that channel in the DAW. A MIDI CC signal mutes or unmutes the channel when switching modes, while the expression pedal remains mapped to global volume.
+FX Mode is designed to stack effects on a single channel, with the MIDI value select button mapped to bypass specific effects on that channel in the DAW. A MIDI CC signal mutes or unmutes the channel when switching modes, while the expression pedal remains mapped to global volume. If an effect on on, the LED above the select button will be lit.
 
 Refer to the `ccValues_CH` array in the `HaH_midi.h` file for MIDI CC assignments mapped to each effect bypass button, and to `CC_FX_MUTE` for the MIDI CC value that controls channel muting.
 

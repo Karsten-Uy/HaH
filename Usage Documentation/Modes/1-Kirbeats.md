@@ -1,5 +1,5 @@
 # 1 - Kirbeats Mode
-This mode is tailored to my (Karsten Kirby Uy) playing style, featuring five regular selectable channels and an expression pedal mapped to control global volume. It functions similarly to channel mode but includes two channels with distinct expression pedal mappings. Additionally, two selectable channels modify the MIDI signal sent by the expression pedal while keeping the volume at maximum. When switching channels using the select buttons, the board sends a MIDI low signal to unmute the selected channel and a MIDI high signal to mute the others.
+This mode is tailored to my (Karsten Kirby Uy) playing style, featuring five regular selectable channels and an expression pedal mapped to control global volume. It functions similarly to channel mode but includes two channels with distinct expression pedal mappings. Additionally, two selectable channels modify the MIDI signal sent by the expression pedal while keeping the volume at maximum. When switching channels using the select buttons, the board sends a MIDI low signal to unmute the selected channel and a MIDI high signal to mute the others. If a channel is selected, the LED above the select button will be lit.
 
 Refer to the `ccValues_KB` array in the `HaH_midi.h` file for midi CC assignments that map to the mute button of the channel.
 

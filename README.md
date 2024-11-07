@@ -5,12 +5,11 @@ This project is an Arduino-based MIDI controller, designed with an Arduino Pro M
 - For setup and usage details, refer to the "Usage Documentation" folder.
 - For details on MIDI outputs, refer to the "MIDI CC Assignments" sections in the "HaH_midi.h" file
 
-[INSERT BOARD IMAGE HERE]
+![BOARD IMAGE](/Images/HaH_main.jpg)
 
-## Table of Contents
+## Documentation Table of Contents
 - [Features](#features)
 - [Components](#components)
-- [Usage](#usage)
 - [Configuration](#configuration)
 
 ## Features

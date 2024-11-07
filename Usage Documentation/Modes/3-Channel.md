@@ -1,5 +1,5 @@
 # 3 - Channel Mode
-This mode routes the signal through specific channels for processing. The MIDI signals triggered by the select buttons are mapped to each channel's mute control, allowing only one channel to stay active at a time. The expression pedal remains mapped to global volume. When switching channels using the select buttons, the board sends a MIDI low signal to unmute the selected channel and a MIDI high signal to mute the remaining channels.
+This mode routes the signal through specific channels for processing. The MIDI signals triggered by the select buttons are mapped to each channel's mute control, allowing only one channel to stay active at a time. The expression pedal remains mapped to global volume. When switching channels using the select buttons, the board sends a MIDI low signal to unmute the selected channel and a MIDI high signal to mute the remaining channels. If a channel is selected, the LED above the select button will be lit.
 
 Refer to the `ccValues_CH` array in the `HaH_midi.h` file for midi CC assignments that map to the mute button of the channel.
 
