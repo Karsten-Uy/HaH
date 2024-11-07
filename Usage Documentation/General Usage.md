@@ -27,9 +27,9 @@ There are three global potentiometers at the top left of the board. These do not
 ## Mode Select
 The "MODE" button, located at the bottom right of the board, enables you to switch between modes. Pressing the button cycles through the modes, indicated by the light below the "MODE" label. The light flashes to show the current mode, with each mode identified by its respective number of flashes. These modes adjust the MIDI signals sent by the select buttons and, in some cases, the expression pedal. For detailed descriptions of each mode, refer to the documentation in the "Modes" folder. Available modes include:
 
-1. Kirbeats
-2. FX
-3. Channel
+1. [Kirbeats](https://github.com/Karsten-Uy/HaH/blob/main/Usage%20Documentation/Modes/1-Kirbeats.md)
+2. [FX](https://github.com/Karsten-Uy/HaH/blob/main/Usage%20Documentation/Modes/2-FX.md)
+3. [Channel](https://github.com/Karsten-Uy/HaH/blob/main/Usage%20Documentation/Modes/3-Channel.md)
 
 #### Mode Button and Indicator
 ![Mode Image](/Images/mode.jpg)

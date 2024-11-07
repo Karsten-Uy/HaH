@@ -8,9 +8,12 @@ This project is an Arduino-based MIDI controller, designed with an Arduino Pro M
 ![BOARD IMAGE](/Images/HaH_main.jpg)
 
 ## Documentation Table of Contents
-- [Features](#features)
-- [Components](#components)
-- [Configuration](#configuration)
+- [General Usage](https://github.com/Karsten-Uy/HaH/blob/main/Usage%20Documentation/General%20Usage.md)
+- [Arduino and Electrical Setup](https://github.com/Karsten-Uy/HaH/blob/main/Usage%20Documentation/Arduino%20and%20Electrical%20Setup.md)
+- Modes
+    1. [Kirbeats](https://github.com/Karsten-Uy/HaH/blob/main/Usage%20Documentation/Modes/1-Kirbeats.md)
+    2. [FX](https://github.com/Karsten-Uy/HaH/blob/main/Usage%20Documentation/Modes/2-FX.md)
+    3. [Channel](https://github.com/Karsten-Uy/HaH/blob/main/Usage%20Documentation/Modes/3-Channel.md)
 
 ## Features
 For more detailed functionality see the "Usage Documentation" folder.
