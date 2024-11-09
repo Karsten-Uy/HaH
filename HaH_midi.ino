@@ -411,7 +411,8 @@ void loop() {
 
   // Potentiometer EX
   int potValueEx = analogRead(POT_EX);
-  byte ccValueEx = map(potValueEx, POT_EX_START_VAL, POT_EX_END_VAL, 0, 127);
+  int ccValueEx = map(potValueEx, POT_EX_START_VAL, POT_EX_END_VAL, 0, 127);
+  ccValueEx = constrain(ccValueEx, 0, 127);
 
   if (abs(potValueEx - lastPotValueEx) > POT_THRESHOLD) { 
 

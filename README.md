@@ -40,6 +40,7 @@ For more detailed functionality see the "Usage Documentation" folder.
     - Tape
     - Macbook Box for structure and button covers
     - Lego for pedal 
+    - Trampoline Park Sock fir grip on pedal
 ## Configuration
 - **Debounce Time (`DEBOUNCETIME`)**: Adjusts the debounce delay in milliseconds.
 - **Potentiometer Calibration (`POT_EX_START_VAL`, `POT_EX_END_VAL`)**: Defines the sensitivity range for the main potentiometer.
