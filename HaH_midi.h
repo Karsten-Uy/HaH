@@ -67,7 +67,7 @@ const int MODE_LIGHT_FLASH_TIME = 100;
 
 //EX Pot Calibration Constants
 const int POT_EX_START_VAL = 375;
-const int POT_EX_END_VAL = 850;
+const int POT_EX_END_VAL = 840;
 
 // Other
 const int RELEASEVEL = 127;
