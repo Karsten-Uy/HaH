@@ -49,4 +49,4 @@ Conenct the buttons to the correspong pin and then to ground, such that when the
 
 Build the circuit to convert a "1-hot" signal into binary encoding. Each button is linked to a specific input, generating a unique binary value that the Arduino can interpret. When a button is pressed, the Arduino detects the rising edge of the corresponding signal, allowing it to identify which button was activated. If no button is pressed, the Arduino reads a "0" (no-signal) state.
 
-[INSERT CIRCUIT IMAGE HERE]
+![Circuit Image](/Images/circuit.png)
